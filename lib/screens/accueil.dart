@@ -8,7 +8,8 @@ import 'package:akasuts/screens/filiere_page.dart';
 import 'package:akasuts/screens/payment_page.dart';
 import 'package:akasuts/screens/resources_page.dart'; // NOUVEL IMPORT
 import 'package:akasuts/services/storage_service.dart';
-import 'package:akasuts/screens/inscription_page.dart'; // Ajoute cette ligne
+import 'package:akasuts/screens/inscription_page.dart';
+import 'package:akasuts/screens/about_uts_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -280,6 +281,14 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ResourcesPage()));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline, color: Colors.orange),
+                title: const Text("À propos de l'UTS"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutUtsPage()));
                 },
               ),
               ListTile(
