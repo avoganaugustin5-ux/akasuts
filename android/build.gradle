@@ -1,0 +1,33 @@
+buildscript {
+    ext.kotlin_version = '1.8.10' // Mis à jour pour mieux supporter les nouveaux JDK
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Correction : Suppression de la virgule à la fin de la ligne
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.1' // Version stable
+        classpath 'com.android.tools.build:gradle:7.4.2' // Important pour la compatibilité Java
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
