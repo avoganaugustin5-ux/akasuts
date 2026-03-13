@@ -24,7 +24,10 @@ void main() async {
   } else {
     // Sur le Web, la persistance est gérée différemment par le navigateur
     // On peut forcer l'indexdb si nécessaire, mais le réglage par défaut est stable.
-    await FirebaseFirestore.instance.enablePersistence();
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true, // Remplace enablePersistence()
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
   }
 
   runApp(const UniversityApp());

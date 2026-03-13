@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-//import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutUtsPage extends StatelessWidget {
@@ -8,7 +7,9 @@ class AboutUtsPage extends StatelessWidget {
   // Fonction pour appeler le numéro directement
   Future<void> _makeCall() async {
     final Uri launchUri = Uri(scheme: 'tel', path: '70444294');
-    await launchUrl(launchUri);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
   }
 
   @override
@@ -16,7 +17,6 @@ class AboutUtsPage extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // Header avec image et titre
           SliverAppBar(
             expandedHeight: 200.0,
             floating: false,
@@ -40,7 +40,6 @@ class AboutUtsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- SECTION MISSION ---
                   const Text("Notre Mission",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
                   const SizedBox(height: 10),
@@ -50,7 +49,6 @@ class AboutUtsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 25),
 
-                  // --- GRILLE DES CHIFFRES CLÉS ---
                   Row(
                     children: [
                       _buildInfoStat("1 890 ha", "Superficie", Icons.map),
@@ -60,7 +58,6 @@ class AboutUtsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 25),
 
-                  // --- COMPOSANTES (UFR & INSTITUTS) ---
                   const Text("Unités de Formation & Instituts",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
                   const SizedBox(height: 15),
@@ -72,7 +69,6 @@ class AboutUtsPage extends StatelessWidget {
 
                   const SizedBox(height: 25),
 
-                  // --- CONTACT & ACCÈS ---
                   const Text("Contact & Accès",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
                   const SizedBox(height: 15),
@@ -81,10 +77,10 @@ class AboutUtsPage extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     child: Column(
                       children: [
-                        ListTile(
-                          leading: const Icon(Icons.location_on, color: Colors.red),
-                          title: const Text("Adresse"),
-                          subtitle: const Text("12 BP 417 Ouagadougou 12, Saaba"),
+                        const ListTile(
+                          leading: Icon(Icons.location_on, color: Colors.red),
+                          title: Text("Adresse"),
+                          subtitle: Text("12 BP 417 Ouagadougou 12, Saaba"),
                         ),
                         ListTile(
                           leading: const Icon(Icons.phone, color: Colors.green),
@@ -92,10 +88,10 @@ class AboutUtsPage extends StatelessWidget {
                           subtitle: const Text("+226 70 44 42 94"),
                           onTap: _makeCall,
                         ),
-                        ListTile(
-                          leading: const Icon(Icons.access_time, color: Colors.orange),
-                          title: const Text("Horaires"),
-                          subtitle: const Text("Ouvert · Ferme à 17:00"),
+                        const ListTile(
+                          leading: Icon(Icons.access_time, color: Colors.orange),
+                          title: Text("Horaires"),
+                          subtitle: Text("Ouvert · Ferme à 17:00"),
                         ),
                       ],
                     ),

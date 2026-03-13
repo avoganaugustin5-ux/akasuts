@@ -6,10 +6,11 @@ class FilierePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Liste synchronisée avec ConditionsPage
     final List<Map<String, String>> filieres = [
-      {"nom": "INFORMATIQUE", "duree": "05 ans", "icon": "computer"},
+      {"nom": "INFORMATIQUE", "duree": "03 ans", "icon": "computer"},
       {"nom": "DROIT", "duree": "03 ans", "icon": "gavel"},
-      {"nom": "MÉDECINE", "duree": "07 ans", "icon": "medical_services"},
+      {"nom": "PHYSIQUE", "duree": "03 ans", "icon": "medical_services"},
       {"nom": "ÉCONOMIE", "duree": "03 ans", "icon": "trending_up"},
     ];
 
@@ -18,17 +19,13 @@ class FilierePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           "Nos Filières",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF1A237E),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
-          // Barre de recherche
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -44,24 +41,18 @@ class FilierePage extends StatelessWidget {
               ),
             ),
           ),
-
-          // Grille des filières
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 0.8,
+                childAspectRatio: 0.85, // Ajusté pour un meilleur rendu
               ),
               itemCount: filieres.length,
               itemBuilder: (context, index) {
-                return _buildFiliereCard(
-                  context,
-                  filieres[index],
-                );
+                return _buildFiliereCard(context, filieres[index]);
               },
             ),
           ),
@@ -70,14 +61,10 @@ class FilierePage extends StatelessWidget {
     );
   }
 
-  // ✅ VERSION RECOMMANDÉE
-  Widget _buildFiliereCard(
-      BuildContext context, Map<String, String> data) {
+  Widget _buildFiliereCard(BuildContext context, Map<String, String> data) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -93,44 +80,31 @@ class FilierePage extends StatelessWidget {
             Text(
               data['nom']!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
+            const SizedBox(height: 5),
             Text(
-              "Durée: ${data['duree']}",
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-              ),
+              "Durée : ${data['duree']}",
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ConditionsPage(
-                      filiereNom: data['nom']!,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConditionsPage(filiereNom: data['nom']!),
                     ),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                const Color(0xFF1A237E),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(8),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A237E),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-              ),
-              child: const Text(
-                "VOIR LE PROGRAMME",
-                style: TextStyle(fontSize: 10),
+                child: const Text("Conditions", style: TextStyle(fontSize: 11)),
               ),
             ),
           ],
@@ -139,19 +113,13 @@ class FilierePage extends StatelessWidget {
     );
   }
 
-  // 🔥 Icône dynamique selon la filière
   IconData _getIconData(String iconName) {
     switch (iconName) {
-      case "computer":
-        return Icons.computer;
-      case "gavel":
-        return Icons.gavel;
-      case "medical_services":
-        return Icons.medical_services;
-      case "trending_up":
-        return Icons.trending_up;
-      default:
-        return Icons.school;
+      case "computer": return Icons.computer;
+      case "gavel": return Icons.gavel;
+      case "medical_services": return Icons.science; // Plus adapté pour Physique
+      case "trending_up": return Icons.trending_up;
+      default: return Icons.school;
     }
   }
 }
