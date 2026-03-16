@@ -1,34 +1,55 @@
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart'; // Pour kIsWeb
+import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:flutter/foundation.dart';
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  // Vos identifiants réels récupérés sur Cloudinary
+  final CloudinaryPublic _cloudinary = CloudinaryPublic(
+      'drjtn4fj3',         // Ton Cloud Name
+      'akasuts_preset',    // Ton Upload Preset
+      cache: false
+  );
+
   final ImagePicker _picker = ImagePicker();
 
-  // 1. Choisir l'image
+// ... le reste du code reste identique ...
+}
+
+  final ImagePicker _picker = ImagePicker();
+
+  // 1. Choisir l'image (Inchangé, c'est parfait)
   Future<XFile?> pickImage() async {
     return await _picker.pickImage(source: ImageSource.gallery);
   }
 
-  // 2. Envoyer l'image vers Firebase Storage
-  Future<String?> uploadProfilePhoto(XFile image, String uid) async {
+  // 2. Envoyer l'image vers Cloudinary
+  Future<String?> uploadMedia(XFile image, {String folder = 'akasuts_uploads'}) async {
     try {
-      Reference ref = _storage.ref().child('profile_photos').child('$uid.jpg');
+      CloudinaryResponse response;
 
       if (kIsWeb) {
-        // Spécifique au Web
-        await ref.putData(await image.readAsBytes());
+        // Pour le Web : on utilise les bytes
+        response = await _cloudinary.uploadFile(
+          CloudinaryFile.fromBytesData(
+            await image.readAsBytes(),
+            identifier: image.name,
+            folder: folder,
+          ),
+        );
       } else {
-        // Spécifique au Mobile
-        await ref.putFile(File(image.path));
+        // Pour le Mobile : on utilise le chemin du fichier
+        response = await _cloudinary.uploadFile(
+          CloudinaryFile.fromFile(
+            image.path,
+            folder: folder,
+          ),
+        );
       }
 
-      // On récupère le lien URL de la photo stockée
-      return await ref.getDownloadURL();
+      // On retourne l'URL sécurisée générée par Cloudinary
+      return response.secureUrl;
     } catch (e) {
-      debugPrint("Erreur upload : $e");
+      debugPrint("Erreur upload Cloudinary : $e");
       return null;
     }
   }
