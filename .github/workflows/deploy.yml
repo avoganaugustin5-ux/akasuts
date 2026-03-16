@@ -1,0 +1,27 @@
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [ main ] # Vérifie que ta branche s'appelle bien main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build web --release --base-href "/akasuts/"
+      - uses: actions/upload-pages-artifact@v2
+        with:
+          path: build/web
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v2
