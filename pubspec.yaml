@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.2
-  font_awesome_flutter: ^10.7.0
+  font_awesome_flutter: 10.7.0
   url_launcher: ^6.2.5
   image_picker: 1.0.7 # On enlève le ^ pour figer cette version
   connectivity_plus: ^5.0.2
