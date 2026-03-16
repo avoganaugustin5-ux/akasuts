@@ -1,18 +1,19 @@
 name: Deploy to GitHub Pages
 on:
   push:
-    branches: [ main ] # Vérifie que ta branche s'appelle bien main
+    branches: [ main ]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4 # Mis à jour en v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.16.9' # Ta version pour éviter les surprises
           channel: 'stable'
       - run: flutter pub get
       - run: flutter build web --release --base-href "/akasuts/"
-      - uses: actions/upload-pages-artifact@v2
+      - uses: actions/upload-pages-artifact@v3 # Correction ici : v2 -> v3
         with:
           path: build/web
   deploy:
@@ -24,4 +25,4 @@ jobs:
       name: github-pages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/deploy-pages@v2
+      - uses: actions/deploy-pages@v4 # Correction ici : v2 -> v4
