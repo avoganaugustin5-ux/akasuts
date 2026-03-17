@@ -51,13 +51,16 @@ class _HomePageState extends State<HomePage> {
 
     final image = await _storageService.pickImage();
     if (image != null && user != null) {
+      // Correction 1 : On vérifie si la page est toujours là avant d'afficher la SnackBar
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Téléchargement de la photo..."), duration: Duration(seconds: 2)),
       );
 
       String? url = await _storageService.uploadMedia(image);
 
+      // Correction 2 : On vérifie après l'upload (longue attente) avant de toucher à Firestore
       if (!mounted) return;
 
       if (url != null) {
@@ -65,6 +68,7 @@ class _HomePageState extends State<HomePage> {
           'photoUrl': url,
         });
 
+        // Correction 3 : On vérifie une dernière fois avant la SnackBar finale
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
