@@ -1,9 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
-import 'package:file_picker/file_picker.dart'; // IMPORTANT : Ajoute cet import
-
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 
 class StorageService {
   final CloudinaryPublic _cloudinary = CloudinaryPublic(
@@ -14,11 +13,12 @@ class StorageService {
 
   final ImagePicker _picker = ImagePicker();
 
+  // Pour choisir une image
   Future<XFile?> pickImage() async {
     return await _picker.pickImage(source: ImageSource.gallery);
   }
 
-  // Fonction universelle mise à jour
+  // Fonction d'upload universelle (Web et Mobile)
   Future<String?> uploadMedia(dynamic fileSource, {String folder = 'akasuts_uploads'}) async {
     try {
       CloudinaryResponse response;
@@ -31,14 +31,13 @@ class StorageService {
           bytes = await fileSource.readAsBytes();
           fileName = fileSource.name;
         } else if (fileSource is PlatformFile) {
-          // C'EST CETTE PARTIE QUI RÉSOUT TON ERREUR SUR CHROME
           bytes = fileSource.bytes!;
           fileName = fileSource.name;
         } else if (fileSource is File) {
           bytes = await fileSource.readAsBytes();
           fileName = fileSource.path.split('/').last;
         } else {
-          throw "Format non supporté sur Web : ${fileSource.runtimeType}";
+          throw "Format non supporté sur Web";
         }
 
         response = await _cloudinary.uploadFile(
@@ -55,8 +54,6 @@ class StorageService {
           filePath = fileSource.path;
         } else if (fileSource is File) {
           filePath = fileSource.path;
-        } else if (fileSource is PlatformFile) {
-          filePath = fileSource.path!;
         } else {
           throw "Format non supporté sur Mobile";
         }
