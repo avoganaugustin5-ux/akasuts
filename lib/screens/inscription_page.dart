@@ -7,19 +7,21 @@ class InscriptionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Comment s'inscrire ?"),
+        title: const Text("Procédure d'Inscription"),
         backgroundColor: const Color(0xFF1A237E),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Image d'en-tête (Optionnelle ou Logo)
+            // En-tête visuel
             Container(
-              height: 150,
+              height: 180,
               width: double.infinity,
-              color: const Color(0xFF1A237E).withOpacity(0.1),
-              child: const Icon(Icons.school, size: 80, color: Color(0xFF1A237E)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A237E).withOpacity(0.05),
+              ),
+              child: const Icon(Icons.menu_book_rounded, size: 100, color: Color(0xFF1A237E)),
             ),
 
             Padding(
@@ -28,69 +30,47 @@ class InscriptionPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Procédure d'inscription à l'UTS",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
+                    "Comment s'inscrire à l'UTS ?",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   const Text(
-                    "Suivez les étapes ci-dessous pour finaliser votre inscription administrative et pédagogique.",
-                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                    "Voici les étapes à suivre pour valider votre cursus académique cette année :",
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   const SizedBox(height: 30),
 
-                  // ÉTAPE 1
-                  _buildStepItem(
+                  // Étape 1
+                  _buildStepCard(
                     number: "1",
-                    title: "Dépôt du dossier physique",
-                    description: "Rendez-vous à la scolarité centrale avec vos diplômes originaux et les copies légalisées.",
-                    icon: Icons.folder_shared,
+                    title: "Dossier En ligne sur Campus Faso: ",
+                    desc: "Déposez vos dossiers pour orientation dans une filière de votre choix de l'UTS. Puis Patienter que l'on vous notifie les résultats de l'orientation avant de procéder au paiement.",
+                    icon: Icons.folder_copy_rounded,
                   ),
 
-                  // ÉTAPE 2
-                  _buildStepItem(
+                  // Étape 2
+                  _buildStepCard(
                     number: "2",
-                    title: "Paiement de la scolarité",
-                    description: "Effectuez votre paiement via l'application (section Paiement) ou à la banque partenaire.",
-                    icon: Icons.payments_outlined,
+                    title: "Paiement",
+                    desc: "Réglez vos frais via la plateforme Campus Faso (après le communiqué venant de la direction de votre UFR: Unité de Formation et de Recherche) puis télécharger vos documents (Quittance et Attestation d'inscription).",
+                    icon: Icons.account_balance_wallet_rounded,
                   ),
 
-                  // ÉTAPE 3
-                  _buildStepItem(
+                  // Étape 3
+                  _buildStepCard(
                     number: "3",
-                    title: "Choix des unités d'enseignement",
-                    description: "Connectez-vous à votre espace pour valider vos matières pour le semestre en cours.",
-                    icon: Icons.app_registration,
+                    title: "Validation",
+                    desc: "N'oubliez pas en fin d'année de récupérer vos relevés de notes des semestres éffectués souvent nécessaire pour prendre à titre illustratif le diplôme de niveau BAC + 2.",
+                    icon: Icons.verified_user_rounded,
                   ),
 
-                  // ÉTAPE 4
-                  _buildStepItem(
-                    number: "4",
-                    title: "Retrait de la carte d'étudiant",
-                    description: "Une fois le dossier validé, retirez votre carte au service de la scolarité.",
-                    icon: Icons.badge_outlined,
-                  ),
+                  const SizedBox(height: 40),
 
-                  const SizedBox(height: 30),
-
-                  // Note d'information
-                  Container(
-                    padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.amber),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.info, color: Colors.amber),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            "Attention : Tout dossier incomplet sera rejeté. Vérifiez bien vos documents.",
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                  // Pied de page
+                  Center(
+                    child: Text(
+                      "Besoin d'aide ? Contactez l'administration: +226 70 44 42 94 / www.uts.bf",
+                      style: TextStyle(color: Colors.blue.shade900, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
@@ -102,16 +82,21 @@ class InscriptionPage extends StatelessWidget {
     );
   }
 
-  // Widget pour construire chaque étape proprement
-  Widget _buildStepItem({required String number, required String title, required String description, required IconData icon}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 25),
+  Widget _buildStepCard({required String number, required String title, required String desc, required IconData icon}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5)),
+        ],
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             backgroundColor: const Color(0xFF1A237E),
-            radius: 18,
             child: Text(number, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(width: 15),
@@ -119,19 +104,12 @@ class InscriptionPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  description,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
+                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(desc, style: const TextStyle(fontSize: 14, color: Colors.black54)),
               ],
             ),
           ),
-          Icon(icon, color: const Color(0xFF1A237E).withOpacity(0.5)),
+          Icon(icon, color: Colors.orange, size: 30),
         ],
       ),
     );

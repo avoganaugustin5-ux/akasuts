@@ -6,49 +6,93 @@ class FilierePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Liste synchronisée avec ConditionsPage
-    final List<Map<String, String>> filieres = [
-      {"nom": "INFORMATIQUE", "duree": "03 ans", "icon": "computer"},
-      {"nom": "DROIT", "duree": "03 ans", "icon": "gavel"},
-      {"nom": "PHYSIQUE", "duree": "03 ans", "icon": "medical_services"},
-      {"nom": "ÉCONOMIE", "duree": "03 ans", "icon": "trending_up"},
+    // Liste enrichie avec tes nouvelles filières et spécialisations
+    final List<Map<String, dynamic>> filieres = [
+      {
+        "nom": "INFORMATIQUE",
+        "duree": "03 ans",
+        "icon": Icons.computer,
+        "specialites": ["Génie Logiciel", "Réseaux & Télécoms"]
+      },
+      {
+        "nom": "DROIT",
+        "duree": "03 ans",
+        "icon": Icons.gavel,
+        "specialites": ["Droit Public", "Droit Privé"]
+      },
+      {
+        "nom": "ÉCONOMIE",
+        "duree": "03 ans",
+        "icon": Icons.trending_up,
+        "specialites": ["Économie Agricole", "Économie Publique", "Macroéconomie"]
+      },
+      {
+        "nom": "MATHÉMATIQUES",
+        "duree": "03 ans",
+        "icon": Icons.functions,
+        "specialites": ["LIME (Ingénierie)", "LISE (Statistiques)"]
+      },
+      {
+        "nom": "PHYSIQUE",
+        "duree": "03 ans",
+        "icon": Icons.science,
+        "specialites": ["Énergie Solaire", "Mécanique Appliquée"]
+      },
+      {
+        "nom": "CHIMIE / APC",
+        "duree": "03 ans",
+        "icon": Icons.biotech,
+        "specialites": ["Analyse Physico-Chimique"]
+      },
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
+      backgroundColor: const Color(0xFFF8F9FA), // Gris très clair pour le contraste
       appBar: AppBar(
         title: const Text(
-          "Nos Filières",
+          "Offre de Formation",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         backgroundColor: const Color(0xFF1A237E),
         iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          // Section de recherche optimisée
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1A237E),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+            ),
             child: TextField(
               decoration: InputDecoration(
-                hintText: "Rechercher une filière...",
-                prefixIcon: const Icon(Icons.search),
+                hintText: "Trouver une filière ou spécialité...",
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF1A237E)),
                 filled: true,
                 fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
                 ),
               ),
             ),
           ),
+
+          // Espace réduit ici pour le design UI
+          const SizedBox(height: 10),
+
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.85, // Ajusté pour un meilleur rendu
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.78, // Ratio équilibré pour éviter le vide
               ),
               itemCount: filieres.length,
               itemBuilder: (context, index) {
@@ -61,65 +105,77 @@ class FilierePage extends StatelessWidget {
     );
   }
 
-  Widget _buildFiliereCard(BuildContext context, Map<String, String> data) {
+  Widget _buildFiliereCard(BuildContext context, Map<String, dynamic> data) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
+      elevation: 4,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _getIconData(data['icon']!),
-              size: 40,
-              color: const Color(0xFF1A237E),
+            // Badge du haut
+            Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  data['duree'],
+                  style: const TextStyle(color: Colors.orange, fontSize: 9, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
+
+            Icon(data['icon'], size: 45, color: const Color(0xFF1A237E)),
+            const SizedBox(height: 8),
+
             Text(
-              data['nom']!,
+              data['nom'],
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1A237E)),
             ),
-            const SizedBox(height: 5),
+
+            const SizedBox(height: 4),
+
+            // Affichage discret des spécialités (UX)
             Text(
-              "Durée : ${data['duree']}",
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              (data['specialites'] as List).join(" • "),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontStyle: FontStyle.italic),
             ),
+
             const Spacer(),
+
+            // Bouton d'action pro
             SizedBox(
               width: double.infinity,
+              height: 35,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ConditionsPage(filiereNom: data['nom']!),
+                      builder: (context) => ConditionsPage(filiereNom: data['nom']),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A237E),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
                 ),
-                child: const Text("Conditions", style: TextStyle(fontSize: 11)),
+                child: const Text("DÉTAILS", style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case "computer": return Icons.computer;
-      case "gavel": return Icons.gavel;
-      case "medical_services": return Icons.science; // Plus adapté pour Physique
-      case "trending_up": return Icons.trending_up;
-      default: return Icons.school;
-    }
   }
 }
