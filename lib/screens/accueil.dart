@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:akasuts/screens/filiere_page.dart';
 import 'package:akasuts/screens/payment_page.dart';
-import 'package:akasuts/screens/resources_page.dart'; // NOUVEL IMPORT
+import 'package:akasuts/screens/resources_page.dart';
 import 'package:akasuts/services/storage_service.dart';
 import 'package:akasuts/screens/inscription_page.dart';
 import 'package:akasuts/screens/about_uts_page.dart';
@@ -41,6 +41,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  // MISE À JOUR : Cette fonction utilise maintenant Cloudinary via ton StorageService
   Future<void> _updatePhoto() async {
     if (_isOffline) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,13 +49,23 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
+
     final image = await _storageService.pickImage();
     if (image != null && user != null) {
-      String? url = await _storageService.uploadProfilePhoto(image, user!.uid);
+      // On affiche un message de patience
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Téléchargement de la photo..."), duration: Duration(seconds: 2)),
+      );
+
+      String? url = await _storageService.uploadMedia(image); // Utilise ton nouveau service Cloudinary
+
       if (url != null) {
         await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-          'photoUrl': url,
+          'photoUrl': url, // On garde le nom 'photoUrl' pour la cohérence de ton code
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Photo mise à jour !"), backgroundColor: Colors.green),
+        );
       }
     }
   }
@@ -73,6 +84,25 @@ class _HomePageState extends State<HomePage> {
           fit: BoxFit.contain,
         ),
         actions: [
+          // AJOUT : Petit aperçu de la photo dans l'AppBar (comme sur Facebook/Gmail)
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data!.exists) {
+                String? url = snapshot.data!.get('photoUrl');
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.white24,
+                    backgroundImage: (url != null && url.isNotEmpty) ? NetworkImage(url) : null,
+                    child: (url == null || url.isEmpty) ? const Icon(Icons.person, size: 20, color: Colors.white) : null,
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => FirebaseAuth.instance.signOut(),
@@ -96,7 +126,7 @@ class _HomePageState extends State<HomePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // ================= HERO SECTION =================
+              // ================= HERO SECTION (Photo de Profil) =================
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -122,6 +152,14 @@ class _HomePageState extends State<HomePage> {
                           return const CircularProgressIndicator(color: Colors.white);
                         }
                         var userData = snapshot.data;
+                        String? photoUrl;
+                        String displayName = "CHARGEMENT...";
+
+                        if (userData != null && userData.exists) {
+                          photoUrl = userData.get('photoUrl');
+                          displayName = "${userData.get('prenom')} ${userData.get('nom')}".toUpperCase();
+                        }
+
                         return Column(
                           children: [
                             GestureDetector(
@@ -131,10 +169,10 @@ class _HomePageState extends State<HomePage> {
                                   CircleAvatar(
                                     radius: 55,
                                     backgroundColor: Colors.white,
-                                    backgroundImage: (userData != null && userData.get('photoUrl') != null)
-                                        ? NetworkImage(userData.get('photoUrl'))
+                                    backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
+                                        ? NetworkImage(photoUrl)
                                         : null,
-                                    child: (userData == null || userData.get('photoUrl') == null)
+                                    child: (photoUrl == null || photoUrl.isEmpty)
                                         ? const Icon(Icons.person, size: 60, color: Color(0xFF1A237E))
                                         : null,
                                   ),
@@ -152,7 +190,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             const SizedBox(height: 15),
                             Text(
-                              userData != null ? "${userData.get('prenom')} ${userData.get('nom')}".toUpperCase() : "CHARGEMENT...",
+                              displayName,
                               style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             Text(
@@ -166,68 +204,9 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
 
-              // ================= BOUTONS D'ACTION =================
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-                child: Row(
-                  children: [
-                    _buildActionButton(context, "DÉCOUVRIR NOS FILIÈRES"),
-                    const SizedBox(width: 10),
-                    _buildActionButton(context, "COMMENT S'INSCRIRE"),
-                  ],
-                ),
-              ),
-
-              // ================= ACTUALITÉS =================
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Actualités",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
-                  ),
-                ),
-              ),
-
-              // ================= RÉSEAUX SOCIAUX =================
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: const Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "Joignable sur les réseaux sociaux...",
-                        style: TextStyle(color: Colors.white, fontSize: 13),
-                      ),
-                    ),
-                    FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 22),
-                    SizedBox(width: 15),
-                    FaIcon(FontAwesomeIcons.youtube, color: Colors.red, size: 22),
-                    SizedBox(width: 15),
-                    FaIcon(FontAwesomeIcons.linkedin, color: Color(0xFF0077B5), size: 22),
-                  ],
-                ),
-              ),
-
-              // ================= NEWS CARDS =================
-              SizedBox(
-                height: 200,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  children: [
-                    _buildNewsCard("Actualités", "Nouveautés sur le campus Thomas Sankara pour l'année 2026.", "assets/images/evenement.jpg"),
-                    _buildNewsCard("Événements", "Conférence annuelle sur le développement durable.", "assets/images/etudiant.jpg"),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+              // ... (le reste de ton code pour les boutons et actualités reste inchangé)
+              _buildActionButtons(context),
+              _buildNewsSection(context),
             ],
           ),
         ),
@@ -235,10 +214,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // MISE À JOUR DU DRAWER : Utilise StreamBuilder pour la photo en temps réel
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
-      child: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(user?.uid).get(),
+      child: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
         builder: (context, snapshot) {
           String name = "Chargement...";
           String email = user?.email ?? "";
@@ -255,8 +235,8 @@ class _HomePageState extends State<HomePage> {
                 decoration: const BoxDecoration(color: Color(0xFF1A237E)),
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.white,
-                  backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-                  child: photoUrl == null ? const Icon(Icons.person, color: Color(0xFF1A237E), size: 40) : null,
+                  backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
+                  child: (photoUrl == null || photoUrl.isEmpty) ? const Icon(Icons.person, color: Color(0xFF1A237E), size: 40) : null,
                 ),
                 accountName: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 accountEmail: Text(email),
@@ -274,7 +254,6 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const FilierePage()));
                 },
               ),
-              // --- NOUVEAU BOUTON : RESSOURCES ---
               ListTile(
                 leading: const Icon(Icons.library_books, color: Colors.blue),
                 title: const Text("Ressources PDF"),
@@ -296,12 +275,7 @@ class _HomePageState extends State<HomePage> {
                 title: const Text("Paiement Scolarité"),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PaymentPage(userEmail: email, userName: name),
-                    ),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentPage(userEmail: email, userName: name)));
                 },
               ),
               const Spacer(),
@@ -322,15 +296,67 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Méthodes d'aide pour garder le code propre
+  Widget _buildActionButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+      child: Row(
+        children: [
+          _buildActionButton(context, "DÉCOUVRIR NOS FILIÈRES"),
+          const SizedBox(width: 10),
+          _buildActionButton(context, "COMMENT S'INSCRIRE"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNewsSection(BuildContext context) {
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text("Actualités", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
+          child: const Row(
+            children: [
+              Expanded(child: Text("Joignable sur les réseaux sociaux...", style: TextStyle(color: Colors.white, fontSize: 13))),
+              FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 22),
+              SizedBox(width: 15),
+              FaIcon(FontAwesomeIcons.youtube, color: Colors.red, size: 22),
+              SizedBox(width: 15),
+              FaIcon(FontAwesomeIcons.linkedin, color: Color(0xFF0077B5), size: 22),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 200,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            children: [
+              _buildNewsCard("Actualités", "Nouveautés sur le campus Thomas Sankara pour l'année 2026.", "assets/images/evenement.jpg"),
+              _buildNewsCard("Événements", "Conférence annuelle sur le développement durable.", "assets/images/etudiant.jpg"),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildActionButton(BuildContext context, String label) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
           if (label == "DÉCOUVRIR NOS FILIÈRES") {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const FilierePage()));
-          }
-          // 👇 AJOUTE CETTE CONDITION ICI
-          else if (label == "COMMENT S'INSCRIRE") {
+          } else if (label == "COMMENT S'INSCRIRE") {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const InscriptionPage()));
           }
         },
@@ -339,15 +365,9 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             color: const Color(0xFF1D2951),
             borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 4))
-            ],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 4))],
           ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-          ),
+          child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
         ),
       ),
     );
@@ -357,11 +377,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       width: 180,
       margin: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.shade300)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
