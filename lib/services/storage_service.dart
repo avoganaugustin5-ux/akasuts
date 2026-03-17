@@ -1,52 +1,74 @@
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
-import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart'; // IMPORTANT : Ajoute cet import
+
 
 class StorageService {
-  // Vos identifiants réels récupérés sur Cloudinary
   final CloudinaryPublic _cloudinary = CloudinaryPublic(
-      'drjtn4fj3',         // Ton Cloud Name
-      'akasuts_preset',    // Ton Upload Preset
+      'drjtn4fj3',
+      'akasuts_preset',
       cache: false
   );
 
   final ImagePicker _picker = ImagePicker();
 
-// ... le reste du code reste identique ...
-}
-
-  final ImagePicker _picker = ImagePicker();
-
-  // 1. Choisir l'image (Inchangé, c'est parfait)
   Future<XFile?> pickImage() async {
     return await _picker.pickImage(source: ImageSource.gallery);
   }
 
-  // 2. Envoyer l'image vers Cloudinary
-  Future<String?> uploadMedia(XFile image, {String folder = 'akasuts_uploads'}) async {
+  // Fonction universelle mise à jour
+  Future<String?> uploadMedia(dynamic fileSource, {String folder = 'akasuts_uploads'}) async {
     try {
       CloudinaryResponse response;
 
       if (kIsWeb) {
-        // Pour le Web : on utilise les bytes
+        Uint8List bytes;
+        String fileName;
+
+        if (fileSource is XFile) {
+          bytes = await fileSource.readAsBytes();
+          fileName = fileSource.name;
+        } else if (fileSource is PlatformFile) {
+          // C'EST CETTE PARTIE QUI RÉSOUT TON ERREUR SUR CHROME
+          bytes = fileSource.bytes!;
+          fileName = fileSource.name;
+        } else if (fileSource is File) {
+          bytes = await fileSource.readAsBytes();
+          fileName = fileSource.path.split('/').last;
+        } else {
+          throw "Format non supporté sur Web : ${fileSource.runtimeType}";
+        }
+
         response = await _cloudinary.uploadFile(
           CloudinaryFile.fromBytesData(
-            await image.readAsBytes(),
-            identifier: image.name,
+            bytes,
+            identifier: fileName,
             folder: folder,
           ),
         );
-      } else {
-        // Pour le Mobile : on utilise le chemin du fichier
+      }
+      else {
+        String filePath;
+        if (fileSource is XFile) {
+          filePath = fileSource.path;
+        } else if (fileSource is File) {
+          filePath = fileSource.path;
+        } else if (fileSource is PlatformFile) {
+          filePath = fileSource.path!;
+        } else {
+          throw "Format non supporté sur Mobile";
+        }
+
         response = await _cloudinary.uploadFile(
           CloudinaryFile.fromFile(
-            image.path,
+            filePath,
             folder: folder,
           ),
         );
       }
 
-      // On retourne l'URL sécurisée générée par Cloudinary
       return response.secureUrl;
     } catch (e) {
       debugPrint("Erreur upload Cloudinary : $e");

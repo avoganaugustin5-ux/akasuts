@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'add_resource_page.dart'; // IMPORTANT : Ajoute cet import pour que le bouton fonctionne
 
 class ResourcesPage extends StatelessWidget {
   const ResourcesPage({super.key});
 
-  // Fonction pour ouvrir le lien PDF dans le navigateur ou l'app dédiée
+  // Fonction pour ouvrir le lien Cloudinary (PDF)
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw "Impossible d'ouvrir le lien $url";
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw "Impossible d'ouvrir le lien $url";
+      }
+    } catch (e) {
+      debugPrint("Erreur ouverture PDF : $e");
     }
   }
 
@@ -21,14 +26,31 @@ class ResourcesPage extends StatelessWidget {
         backgroundColor: const Color(0xFF1A237E),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
+
+      // === LE BOUTON FLOTTANT POUR AJOUTER ===
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF1A237E),
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddResourcePage()),
+          );
+        },
+      ),
+
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('resources').snapshots(),
+        // On trie par date pour avoir les derniers documents en premier
+        stream: FirebaseFirestore.instance
+            .collection('resources')
+            .orderBy('date', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text("Une erreur est survenue"));
+            return const Center(child: Text("Erreur lors du chargement des documents"));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF1A237E)));
           }
 
           final docs = snapshot.data!.docs;
@@ -45,6 +67,7 @@ class ResourcesPage extends StatelessWidget {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               var data = docs[index].data() as Map<String, dynamic>;
+
               return Card(
                 elevation: 3,
                 margin: const EdgeInsets.symmetric(vertical: 8),
@@ -52,12 +75,12 @@ class ResourcesPage extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
                   title: Text(
-                    data['title'] ?? 'Document sans titre',
+                    data['titre'] ?? data['title'] ?? 'Document sans titre',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text("Catégorie : ${data['category'] ?? 'Général'}"),
+                  subtitle: Text("Type : ${data['type'] ?? data['category'] ?? 'Général'}"),
                   trailing: IconButton(
-                    icon: const Icon(Icons.download_rounded, color: Color(0xFF1A237E)),
+                    icon: const Icon(Icons.download_rounded, color: Color(0xFF1A237E), size: 30),
                     onPressed: () => _launchURL(data['url']),
                   ),
                 ),

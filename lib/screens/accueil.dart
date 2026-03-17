@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Ajouté
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:akasuts/screens/filiere_page.dart';
-import 'package:akasuts/screens/payment_page.dart';
+import 'package:akasuts/screens/payment_page.dart'; // Ajouté
 import 'package:akasuts/screens/resources_page.dart';
 import 'package:akasuts/services/storage_service.dart';
 import 'package:akasuts/screens/inscription_page.dart';
-import 'package:akasuts/screens/about_uts_page.dart';
+import 'package:akasuts/screens/about_uts_page.dart'; // Ajouté
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -41,7 +41,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // MISE À JOUR : Cette fonction utilise maintenant Cloudinary via ton StorageService
   Future<void> _updatePhoto() async {
     if (_isOffline) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,17 +51,22 @@ class _HomePageState extends State<HomePage> {
 
     final image = await _storageService.pickImage();
     if (image != null && user != null) {
-      // On affiche un message de patience
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Téléchargement de la photo..."), duration: Duration(seconds: 2)),
       );
 
-      String? url = await _storageService.uploadMedia(image); // Utilise ton nouveau service Cloudinary
+      String? url = await _storageService.uploadMedia(image);
+
+      if (!mounted) return;
 
       if (url != null) {
         await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-          'photoUrl': url, // On garde le nom 'photoUrl' pour la cohérence de ton code
+          'photoUrl': url,
         });
+
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Photo mise à jour !"), backgroundColor: Colors.green),
         );
@@ -79,12 +83,11 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         title: Image.asset(
-          'assets/images/logo_uts.jpg',
+          'assets/images/logo_uts.jpg', // Image 1 : Logo
           height: 40,
           fit: BoxFit.contain,
         ),
         actions: [
-          // AJOUT : Petit aperçu de la photo dans l'AppBar (comme sur Facebook/Gmail)
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
             builder: (context, snapshot) {
@@ -115,7 +118,7 @@ class _HomePageState extends State<HomePage> {
             color: Colors.orange,
             width: double.infinity,
             alignment: Alignment.center,
-            child: const Text("Mode hors-ligne (Données locales)",
+            child: const Text("Mode hors-ligne",
                 style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
           ),
         )
@@ -126,7 +129,6 @@ class _HomePageState extends State<HomePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // ================= HERO SECTION (Photo de Profil) =================
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -136,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                     decoration: const BoxDecoration(
                       color: Color(0xFF1A237E),
                       image: DecorationImage(
-                        image: AssetImage('assets/images/campus.jpg'),
+                        image: AssetImage('assets/images/campus.jpg'), // Image 2 : Campus
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -153,7 +155,7 @@ class _HomePageState extends State<HomePage> {
                         }
                         var userData = snapshot.data;
                         String? photoUrl;
-                        String displayName = "CHARGEMENT...";
+                        String displayName = "UTIEN";
 
                         if (userData != null && userData.exists) {
                           photoUrl = userData.get('photoUrl');
@@ -191,11 +193,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(height: 15),
                             Text(
                               displayName,
-                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              userData != null ? userData.get('role').toString().toUpperCase() : "",
-                              style: const TextStyle(color: Colors.orange, fontSize: 14, fontWeight: FontWeight.w600),
+                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ],
                         );
@@ -203,10 +201,45 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-
-              // ... (le reste de ton code pour les boutons et actualités reste inchangé)
               _buildActionButtons(context),
-              _buildNewsSection(context),
+
+              // RE-AJOUT : Section Réseaux Sociaux
+              Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
+                child: const Row(
+                  children: [
+                    Expanded(child: Text("Joignable sur les réseaux sociaux...", style: TextStyle(color: Colors.white, fontSize: 13))),
+                    FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 22),
+                    SizedBox(width: 15),
+                    FaIcon(FontAwesomeIcons.facebook, color: Colors.blue, size: 22),
+                    SizedBox(width: 15),
+                    FaIcon(FontAwesomeIcons.linkedin, color: Color(0xFF0077B5), size: 22),
+                  ],
+                ),
+              ),
+
+              // RE-AJOUT : Section Actualités avec images horizontales
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text("Actualités", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
+                ),
+              ),
+              SizedBox(
+                height: 200,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  children: [
+                    _buildNewsCard("Actualités", "Nouveautés sur le campus Thomas Sankara.", "assets/images/evenement.jpg"),
+                    _buildNewsCard("Événements", "Conférence annuelle sur le développement.", "assets/images/etudiant.jpg"),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -214,7 +247,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // MISE À JOUR DU DRAWER : Utilise StreamBuilder pour la photo en temps réel
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
       child: StreamBuilder<DocumentSnapshot>(
@@ -247,7 +279,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: const Icon(Icons.school),
+                leading: const Icon(Icons.school, color: Colors.orange), // Restauré
                 title: const Text("Nos Filières"),
                 onTap: () {
                   Navigator.pop(context);
@@ -263,7 +295,7 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.info_outline, color: Colors.orange),
+                leading: const Icon(Icons.info_outline, color: Colors.blue), // Restauré
                 title: const Text("À propos de l'UTS"),
                 onTap: () {
                   Navigator.pop(context);
@@ -271,7 +303,7 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.payment, color: Colors.green),
+                leading: const Icon(Icons.payment, color: Colors.green), // Restauré
                 title: const Text("Paiement Scolarité"),
                 onTap: () {
                   Navigator.pop(context);
@@ -285,10 +317,6 @@ class _HomePageState extends State<HomePage> {
                 title: const Text("Déconnexion"),
                 onTap: () => FirebaseAuth.instance.signOut(),
               ),
-              const Padding(
-                padding: EdgeInsets.all(12.0),
-                child: Text("Version 1.0.0", style: TextStyle(color: Colors.grey)),
-              )
             ],
           );
         },
@@ -296,10 +324,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Méthodes d'aide pour garder le code propre
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+      padding: const EdgeInsets.all(15),
       child: Row(
         children: [
           _buildActionButton(context, "DÉCOUVRIR NOS FILIÈRES"),
@@ -310,74 +337,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNewsSection(BuildContext context) {
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text("Actualités", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A237E))),
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
-          child: const Row(
-            children: [
-              Expanded(child: Text("Joignable sur les réseaux sociaux...", style: TextStyle(color: Colors.white, fontSize: 13))),
-              FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 22),
-              SizedBox(width: 15),
-              FaIcon(FontAwesomeIcons.youtube, color: Colors.red, size: 22),
-              SizedBox(width: 15),
-              FaIcon(FontAwesomeIcons.linkedin, color: Color(0xFF0077B5), size: 22),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 200,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            children: [
-              _buildNewsCard("Actualités", "Nouveautés sur le campus Thomas Sankara pour l'année 2026.", "assets/images/evenement.jpg"),
-              _buildNewsCard("Événements", "Conférence annuelle sur le développement durable.", "assets/images/etudiant.jpg"),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildActionButton(BuildContext context, String label) {
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF1D2951),
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        onPressed: () {
           if (label == "DÉCOUVRIR NOS FILIÈRES") {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const FilierePage()));
-          } else if (label == "COMMENT S'INSCRIRE") {
+          } else {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const InscriptionPage()));
           }
         },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1D2951),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 4))],
-          ),
-          child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-        ),
+        child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
+  // RE-AJOUT : Widget pour les cartes d'actualités
   Widget _buildNewsCard(String title, String content, String imagePath) {
     return Container(
-      width: 180,
-      margin: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.shade300)),
+      width: 200,
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -390,7 +379,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 5),
                 Text(content, style: const TextStyle(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
