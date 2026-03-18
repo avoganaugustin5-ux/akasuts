@@ -6,51 +6,39 @@ class FilierePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Liste enrichie avec tes nouvelles filières et spécialisations
+    // Liste mise à jour avec les spécialités intégrées pour combler le vide UI
     final List<Map<String, dynamic>> filieres = [
       {
         "nom": "INFORMATIQUE",
         "duree": "03 ans",
         "icon": Icons.computer,
-        "specialites": ["Génie Logiciel", "Réseaux & Télécoms"]
+        "desc": "Génie Logiciel • Réseaux"
       },
       {
         "nom": "DROIT",
         "duree": "03 ans",
         "icon": Icons.gavel,
-        "specialites": ["Droit Public", "Droit Privé"]
+        "desc": "Droit Public • Privé"
       },
       {
         "nom": "ÉCONOMIE",
         "duree": "03 ans",
         "icon": Icons.trending_up,
-        "specialites": ["Économie Agricole", "Économie Publique", "Macroéconomie"]
-      },
-      {
-        "nom": "MATHÉMATIQUES",
-        "duree": "03 ans",
-        "icon": Icons.functions,
-        "specialites": ["LIME (Ingénierie)", "LISE (Statistiques)"]
+        "desc": "Agricole • Publique • Macro"
       },
       {
         "nom": "PHYSIQUE",
         "duree": "03 ans",
         "icon": Icons.science,
-        "specialites": ["Énergie Solaire", "Mécanique Appliquée"]
-      },
-      {
-        "nom": "CHIMIE / APC",
-        "duree": "03 ans",
-        "icon": Icons.biotech,
-        "specialites": ["Analyse Physico-Chimique"]
+        "desc": "Énergie Solaire • Mécanique"
       },
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Gris très clair pour le contraste
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text(
-          "Offre de Formation",
+          "Nos Filières",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -60,16 +48,16 @@ class FilierePage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Section de recherche optimisée
+          // Barre de recherche stylisée (Réduit l'espace vide du haut)
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+            padding: const EdgeInsets.fromLTRB(16, 5, 16, 20),
             decoration: const BoxDecoration(
               color: Color(0xFF1A237E),
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
             child: TextField(
               decoration: InputDecoration(
-                hintText: "Trouver une filière ou spécialité...",
+                hintText: "Rechercher une spécialité...",
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF1A237E)),
                 filled: true,
                 fillColor: Colors.white,
@@ -82,21 +70,21 @@ class FilierePage extends StatelessWidget {
             ),
           ),
 
-          // Espace réduit ici pour le design UI
-          const SizedBox(height: 10),
+          const SizedBox(height: 15),
 
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.78, // Ratio équilibré pour éviter le vide
+                childAspectRatio: 0.85, // Optimisation de l'espace vertical
               ),
               itemCount: filieres.length,
               itemBuilder: (context, index) {
-                return _buildFiliereCard(context, filieres[index]);
+                final item = filieres[index];
+                return _buildEnhancedCard(context, item);
               },
             ),
           ),
@@ -105,54 +93,43 @@ class FilierePage extends StatelessWidget {
     );
   }
 
-  Widget _buildFiliereCard(BuildContext context, Map<String, dynamic> data) {
+  Widget _buildEnhancedCard(BuildContext context, Map<String, dynamic> data) {
     return Card(
       elevation: 4,
-      shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // Badge du haut
+            // Petit badge de durée
             Align(
               alignment: Alignment.topRight,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  data['duree'],
-                  style: const TextStyle(color: Colors.orange, fontSize: 9, fontWeight: FontWeight.bold),
-                ),
+              child: Text(
+                data['duree'],
+                style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
               ),
             ),
 
-            Icon(data['icon'], size: 45, color: const Color(0xFF1A237E)),
-            const SizedBox(height: 8),
+            Icon(data['icon'], size: 42, color: const Color(0xFF1A237E)),
+            const SizedBox(height: 10),
 
             Text(
               data['nom'],
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1A237E)),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1A237E)),
             ),
 
             const SizedBox(height: 4),
 
-            // Affichage discret des spécialités (UX)
+            // Affichage des sous-filières pour combler le vide
             Text(
-              (data['specialites'] as List).join(" • "),
+              data['desc'],
               textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontStyle: FontStyle.italic),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontStyle: FontStyle.italic),
             ),
 
             const Spacer(),
 
-            // Bouton d'action pro
             SizedBox(
               width: double.infinity,
               height: 35,
@@ -167,10 +144,11 @@ class FilierePage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A237E),
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   elevation: 0,
                 ),
-                child: const Text("DÉTAILS", style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                child: const Text("DÉTAILS", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

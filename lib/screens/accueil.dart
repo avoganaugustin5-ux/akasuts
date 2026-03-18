@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:url_launcher/url_launcher.dart'; // IMPORTATION CRUCIALE
 
 // Tes imports de pages
 import 'package:akasuts/screens/filiere_page.dart';
@@ -29,7 +30,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Surveillance de la connexion internet
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() => _isOffline = (result == ConnectivityResult.none));
     });
@@ -41,7 +41,28 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // FONCTION MISE À JOUR PHOTO (SÉCURISÉE)
+  // FONCTION DE TÉLÉCHARGEMENT DE L'APK
+  Future<void> _launchDownloadURL() async {
+    final Uri url = Uri.parse('https://github.com/avoganaugustin5-ux/akasuts/releases/download/v1.0.0/akasuts-v1.0.apk');
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication, // Force l'ouverture dans le navigateur pour le téléchargement
+        );
+      } else {
+        throw 'Impossible d\'ouvrir le lien de téléchargement';
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  // FONCTION MISE À JOUR PHOTO
   Future<void> _updatePhoto() async {
     if (_isOffline) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,7 +118,7 @@ class _HomePageState extends State<HomePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // SECTION HERO (CAMPUS + PROFIL)
+              // SECTION HERO
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -115,7 +136,7 @@ class _HomePageState extends State<HomePage> {
 
               _buildActionButtons(context),
 
-              // TA SECTION RÉSEAUX SOCIAUX
+              // SECTION RÉSEAUX SOCIAUX
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 padding: const EdgeInsets.all(12),
@@ -132,7 +153,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // TA SECTION ACTUALITÉS
+              // NOUVEAU : BOUTON DE TÉLÉCHARGEMENT APK
+              _buildDownloadButton(),
+
+              // SECTION ACTUALITÉS
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Align(alignment: Alignment.centerLeft, child: Text("Actualités du campus", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
@@ -147,7 +171,29 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Petits widgets internes pour la clarté
+  // --- WIDGETS DE COMPOSANTS ---
+
+  Widget _buildDownloadButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _launchDownloadURL,
+        icon: const Icon(Icons.file_download, color: Colors.white),
+        label: const Text(
+          "TÉLÉCHARGER LA DERNIÈRE VERSION (APK)",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.orange,
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 5,
+        ),
+      ),
+    );
+  }
+
   Widget _buildTopAvatar() {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
