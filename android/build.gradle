@@ -1,15 +1,13 @@
 buildscript {
-    ext.kotlin_version = '1.8.10' // Mis à jour pour mieux supporter les nouveaux JDK
+    ext.kotlin_version = '1.9.0'
     repositories {
         google()
         mavenCentral()
     }
-
     dependencies {
-        // Correction : Suppression de la virgule à la fin de la ligne
+        classpath 'com.android.tools.build:gradle:8.6.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.4.1' // Version stable
-        classpath 'com.android.tools.build:gradle:7.4.2' // Important pour la compatibilité Java
+        classpath 'com.google.gms:google-services:4.4.1'
     }
 }
 
@@ -31,3 +29,6 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+// On retire afterProject et afterEvaluate.
+// La version ^6.0.0 de InAppWebView dans ton pubspec gère déjà le namespace.

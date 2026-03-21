@@ -4,7 +4,6 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-// Syntaxe Groovy directe pour éviter les erreurs "Cannot resolve symbol"
 def localProperties = new java.util.Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -17,39 +16,37 @@ def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 
 android {
-    // Identifiant unique de ton application AKASUTS
     namespace "com.example.akasuts"
 
-    // Correction impérative : passage au SDK 34 pour compatibilité plugins
-    compileSdkVersion 34
-    ndkVersion flutter.ndkVersion
+    // Support du SDK 35 (Android 15)
+    compileSdkVersion 35
+
+    // Correction de l'erreur NDK demandée par le terminal
+    ndkVersion "26.1.10909125"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     defaultConfig {
         applicationId "com.example.akasuts"
 
-        // Configuration minimale et cible
-        minSdkVersion 21
-        targetSdkVersion 34
+        // CORRECTION CRUCIALE : Passage à 23 pour Firebase Auth 23.0.0
+        minSdkVersion 23
 
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
 
     buildTypes {
         release {
-            // Pour l'instant on utilise la config debug pour autoriser le build sans keystore perso
             signingConfig signingConfigs.debug
-
-            // On désactive le masquage de code pour éviter les erreurs de ressources (AAPT2)
             minifyEnabled false
             shrinkResources false
         }
@@ -61,10 +58,9 @@ flutter {
 }
 
 dependencies {
-    // Firebase Bill of Materials (BOM) pour gérer les versions automatiquement
-    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    // Mise à jour du BOM Firebase pour compatibilité maximale
+    implementation platform('com.google.firebase:firebase-bom:33.1.0')
     implementation 'com.google.firebase:firebase-analytics'
 }
 
-// Application du plugin Google Services pour Firebase
 apply plugin: 'com.google.gms.google-services'

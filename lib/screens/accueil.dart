@@ -4,7 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:url_launcher/url_launcher.dart'; // IMPORTATION CRUCIALE
+import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // IMPORT POUR LE CACHE
 
 // Tes imports de pages
 import 'package:akasuts/screens/filiere_page.dart';
@@ -30,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    // Vérification initiale et écoute des changements de connexion
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() => _isOffline = (result == ConnectivityResult.none));
     });
@@ -47,12 +49,9 @@ class _HomePageState extends State<HomePage> {
 
     try {
       if (await canLaunchUrl(url)) {
-        await launchUrl(
-          url,
-          mode: LaunchMode.externalApplication, // Force l'ouverture dans le navigateur pour le téléchargement
-        );
+        await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        throw 'Impossible d\'ouvrir le lien de téléchargement';
+        throw 'Impossible d\'ouvrir le lien';
       }
     } catch (e) {
       if (!mounted) return;
@@ -66,7 +65,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _updatePhoto() async {
     if (_isOffline) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Connexion requise pour changer la photo")),
+        const SnackBar(content: Text("Connexion requise pour changer la photo"), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -80,13 +79,8 @@ class _HomePageState extends State<HomePage> {
 
       String? url = await _storageService.uploadMedia(image);
 
-      if (!mounted) return;
-
       if (url != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-          'photoUrl': url,
-        });
-
+        await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({'photoUrl': url});
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Photo mise à jour !"), backgroundColor: Colors.green),
@@ -103,7 +97,8 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: const Color(0xFF1A237E),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Image.asset('assets/images/logo_uts.jpg', height: 40, fit: BoxFit.contain),
+        title: const Text("AKASUTS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        centerTitle: true,
         actions: [
           _buildTopAvatar(),
           IconButton(
@@ -118,7 +113,7 @@ class _HomePageState extends State<HomePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // SECTION HERO
+              // SECTION HERO (Image du campus + Profil)
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -126,7 +121,10 @@ class _HomePageState extends State<HomePage> {
                     height: 250,
                     width: double.infinity,
                     decoration: const BoxDecoration(
-                      image: DecorationImage(image: AssetImage('assets/images/campus.jpg'), fit: BoxFit.cover),
+                      image: DecorationImage(
+                          image: AssetImage('assets/images/campus.jpg'),
+                          fit: BoxFit.cover
+                      ),
                     ),
                   ),
                   Container(height: 250, color: Colors.black.withOpacity(0.6)),
@@ -136,7 +134,7 @@ class _HomePageState extends State<HomePage> {
 
               _buildActionButtons(context),
 
-              // SECTION RÉSEAUX SOCIAUX
+              // RÉSEAUX SOCIAUX
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 padding: const EdgeInsets.all(12),
@@ -153,13 +151,15 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // NOUVEAU : BOUTON DE TÉLÉCHARGEMENT APK
               _buildDownloadButton(),
 
               // SECTION ACTUALITÉS
               const Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Align(alignment: Alignment.centerLeft, child: Text("Actualités du campus", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Actualités du campus", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+                ),
               ),
               _buildNewsCard("Événements", "Conférence annuelle Thomas Sankara.", 'assets/images/evenement.jpg'),
               _buildNewsCard("Vie Étudiante", "Nouveautés sur le campus.", 'assets/images/etudiant.jpg'),
@@ -171,28 +171,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- WIDGETS DE COMPOSANTS ---
-
-  Widget _buildDownloadButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: _launchDownloadURL,
-        icon: const Icon(Icons.file_download, color: Colors.white),
-        label: const Text(
-          "TÉLÉCHARGER LA DERNIÈRE VERSION (APK)",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange,
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          elevation: 5,
-        ),
-      ),
-    );
-  }
+  // --- COMPOSANTS OPTIMISÉS ---
 
   Widget _buildTopAvatar() {
     return StreamBuilder<DocumentSnapshot>(
@@ -202,14 +181,27 @@ class _HomePageState extends State<HomePage> {
         if (snapshot.hasData && snapshot.data!.exists) url = snapshot.data!.get('photoUrl');
         return Padding(
           padding: const EdgeInsets.only(right: 8.0),
-          child: CircleAvatar(radius: 15, backgroundImage: (url != null && url.isNotEmpty) ? NetworkImage(url) : null, child: (url == null) ? const Icon(Icons.person, size: 15) : null),
+          child: CircleAvatar(
+            radius: 15,
+            backgroundColor: Colors.white24,
+            backgroundImage: (url != null && url.isNotEmpty) ? CachedNetworkImageProvider(url) : null,
+            child: (url == null || url.isEmpty) ? const Icon(Icons.person, size: 15, color: Colors.white) : null,
+          ),
         );
       },
     );
   }
 
   PreferredSize _buildOfflineBanner() {
-    return PreferredSize(preferredSize: const Size.fromHeight(30), child: Container(color: Colors.orange, height: 30, alignment: Alignment.center, child: const Text("Mode hors-ligne", style: TextStyle(color: Colors.white, fontSize: 11))));
+    return PreferredSize(
+        preferredSize: const Size.fromHeight(30),
+        child: Container(
+            color: Colors.orange,
+            height: 30,
+            alignment: Alignment.center,
+            child: const Text("Mode hors-ligne actif", style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))
+        )
+    );
   }
 
   Widget _buildHeroProfileContent() {
@@ -217,10 +209,12 @@ class _HomePageState extends State<HomePage> {
       stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
       builder: (context, snapshot) {
         String? photoUrl;
-        String name = "UTIEN";
+        String name = "ÉTUDIANT UTS";
         if (snapshot.hasData && snapshot.data!.exists) {
           photoUrl = snapshot.data!.get('photoUrl');
-          name = "${snapshot.data!.get('prenom')} ${snapshot.data!.get('nom')}".toUpperCase();
+          String prenom = snapshot.data!.get('prenom') ?? "";
+          String nom = snapshot.data!.get('nom') ?? "";
+          name = "$prenom $nom".toUpperCase();
         }
         return Column(
           children: [
@@ -228,8 +222,23 @@ class _HomePageState extends State<HomePage> {
               onTap: _updatePhoto,
               child: Stack(
                 children: [
-                  CircleAvatar(radius: 55, backgroundColor: Colors.white, backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null, child: (photoUrl == null) ? const Icon(Icons.person, size: 60) : null),
-                  Positioned(bottom: 0, right: 5, child: Container(padding: const EdgeInsets.all(6), decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle), child: const Icon(Icons.camera_alt, size: 20, color: Colors.white))),
+                  CircleAvatar(
+                      radius: 55,
+                      backgroundColor: Colors.white,
+                      backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
+                          ? CachedNetworkImageProvider(photoUrl)
+                          : null,
+                      child: (photoUrl == null || photoUrl.isEmpty) ? const Icon(Icons.person, size: 60, color: Color(0xFF1A237E)) : null
+                  ),
+                  Positioned(
+                      bottom: 0,
+                      right: 5,
+                      child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                          child: const Icon(Icons.camera_alt, size: 20, color: Colors.white)
+                      )
+                  ),
                 ],
               ),
             ),
@@ -241,12 +250,30 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildDownloadButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _launchDownloadURL,
+        icon: const Icon(Icons.file_download, color: Colors.white),
+        label: const Text("TÉLÉCHARGER L'APK (V1.0.0)", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.orange,
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 5,
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          _buildMainBtn(context, "DÉCOUVRIR NOS FILIÈRES", const FilierePage()),
+          _buildMainBtn(context, "DÉCOUVRIR FILIÈRES", const FilierePage()),
           const SizedBox(width: 10),
           _buildMainBtn(context, "COMMENT S'INSCRIRE", const InscriptionPage()),
         ],
@@ -255,12 +282,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMainBtn(BuildContext context, String label, Widget page) {
-    return Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1D2951), padding: const EdgeInsets.symmetric(vertical: 15)), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => page)), child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))));
+    return Expanded(
+        child: ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1D2951), padding: const EdgeInsets.symmetric(vertical: 15)),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => page)),
+            child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))
+        )
+    );
   }
 
   Widget _buildNewsCard(String title, String desc, String imgPath) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.asset(imgPath, width: 60, height: 60, fit: BoxFit.cover)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -284,11 +319,15 @@ class _HomePageState extends State<HomePage> {
             children: [
               UserAccountsDrawerHeader(
                 decoration: const BoxDecoration(color: Color(0xFF1A237E)),
-                currentAccountPicture: CircleAvatar(backgroundImage: (photoUrl != null) ? NetworkImage(photoUrl) : null, child: (photoUrl == null) ? const Icon(Icons.person, size: 40) : null),
-                accountName: Text(name),
+                currentAccountPicture: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? CachedNetworkImageProvider(photoUrl) : null,
+                    child: (photoUrl == null || photoUrl.isEmpty) ? const Icon(Icons.person, size: 40, color: Color(0xFF1A237E)) : null
+                ),
+                accountName: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
                 accountEmail: Text(user?.email ?? ""),
               ),
-              ListTile(leading: const Icon(Icons.home), title: const Text("Accueil"), onTap: () => Navigator.pop(context)),
+              ListTile(leading: const Icon(Icons.home, color: Color(0xFF1A237E)), title: const Text("Accueil"), onTap: () => Navigator.pop(context)),
               ListTile(leading: const Icon(Icons.school, color: Colors.orange), title: const Text("Nos Filières"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FilierePage()))),
               ListTile(leading: const Icon(Icons.library_books, color: Colors.blue), title: const Text("Ressources PDF"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ResourcesPage()))),
               ListTile(leading: const Icon(Icons.payment, color: Colors.green), title: const Text("Paiement"), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentPage(userEmail: user?.email ?? "", userName: name)))),
@@ -296,6 +335,7 @@ class _HomePageState extends State<HomePage> {
               const Spacer(),
               const Divider(),
               ListTile(leading: const Icon(Icons.exit_to_app, color: Colors.red), title: const Text("Déconnexion"), onTap: () => FirebaseAuth.instance.signOut()),
+              const SizedBox(height: 20),
             ],
           );
         },

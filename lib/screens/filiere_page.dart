@@ -6,7 +6,7 @@ class FilierePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Liste mise à jour avec les spécialités intégrées pour combler le vide UI
+    // Liste mise à jour incluant les MATHÉMATIQUES
     final List<Map<String, dynamic>> filieres = [
       {
         "nom": "INFORMATIQUE",
@@ -27,11 +27,18 @@ class FilierePage extends StatelessWidget {
         "desc": "Agricole • Publique • Macro"
       },
       {
+        "nom": "MATHÉMATIQUES", // AJOUT ICI
+        "duree": "03 ans",
+        "icon": Icons.functions,
+        "desc": "Analyse • Algèbre • Appliquées"
+      },
+      {
         "nom": "PHYSIQUE",
         "duree": "03 ans",
         "icon": Icons.science,
         "desc": "Énergie Solaire • Mécanique"
       },
+      // Tu peux ajouter une 6ème filière comme "SEG" (Sciences Éco & Gestion) pour une grille 2x3 parfaite
     ];
 
     return Scaffold(
@@ -48,7 +55,6 @@ class FilierePage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Barre de recherche stylisée (Réduit l'espace vide du haut)
           Container(
             padding: const EdgeInsets.fromLTRB(16, 5, 16, 20),
             decoration: const BoxDecoration(
@@ -79,7 +85,7 @@ class FilierePage extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.85, // Optimisation de l'espace vertical
+                childAspectRatio: 0.82, // Ajusté légèrement pour le texte plus long
               ),
               itemCount: filieres.length,
               itemBuilder: (context, index) {
@@ -101,7 +107,6 @@ class FilierePage extends StatelessWidget {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // Petit badge de durée
             Align(
               alignment: Alignment.topRight,
               child: Text(
@@ -116,16 +121,17 @@ class FilierePage extends StatelessWidget {
             Text(
               data['nom'],
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1A237E)),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1A237E)), // Taille réduite à 13 pour MATHÉMATIQUES
             ),
 
             const SizedBox(height: 4),
 
-            // Affichage des sous-filières pour combler le vide
             Text(
               data['desc'],
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontStyle: FontStyle.italic),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontStyle: FontStyle.italic),
             ),
 
             const Spacer(),

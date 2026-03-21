@@ -23,7 +23,9 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "7.3.0" apply false
+    // Mise à jour CRUCIALE ici pour correspondre au SDK 35
+    id "com.android.application" version "8.6.0" apply false
+    id "org.jetbrains.kotlin.android" version "1.9.0" apply false
 }
 
 include ":app"
