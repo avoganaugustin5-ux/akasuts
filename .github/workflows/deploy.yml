@@ -1,28 +1,41 @@
 name: Deploy to GitHub Pages
+
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4 # Mis à jour en v4
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+
+      # ÉTAPE CRUCIALE : Installer Java 17 pour Gradle 8.6
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          flutter-version: '3.16.9' # Ta version pour éviter les surprises
+          distribution: 'zulu'
+          java-version: '17'
+
+      # Configuration de Flutter 3.2.6
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.2.6'
           channel: 'stable'
-      - run: flutter pub get
-      - run: flutter build web --release --base-href "/akasuts/"
-      - uses: actions/upload-pages-artifact@v3 # Correction ici : v2 -> v3
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Build de la version Web (indispensable pour GitHub Pages)
+      - name: Build Web
+        run: flutter build web --release --base-href "/akasuts/"
+
+      # Déploiement automatique sur la branche gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          path: build/web
-  deploy:
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/deploy-pages@v4 # Correction ici : v2 -> v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
