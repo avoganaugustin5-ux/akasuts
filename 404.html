@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base href="/akasuts/">
+
+    <meta charset="UTF-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="description" content="Application Université Thomas Sankara">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="AKASUTS">
+    <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+    <link rel="icon" type="image/png" href="favicon.png"/>
+
+    <title>AKASUTS</title>
+    <link rel="manifest" href="manifest.json">
+
+    <script>
+        // Injected by flutter build
+        const serviceWorkerVersion = "568690695";
+    </script>
+    <script src="flutter.js" defer></script>
+</head>
+<body>
+<script>
+    window.addEventListener('load', function(ev) {
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine({
+            // On conserve le rendu HTML pour la compatibilité maximale
+            renderer: "html",
+            useColorEmoji: true
+          }).then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
+</script>
+</body>
+</html>
